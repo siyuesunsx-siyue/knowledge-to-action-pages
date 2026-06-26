@@ -33,7 +33,9 @@
       background: var(--dark);
     }
     #stage {
-      position: relative;
+      position: absolute;
+      left: 50%;
+      top: 50%;
       width: 1600px;
       height: 900px;
       transform-origin: center center;
@@ -613,7 +615,7 @@
 
     function scaleStage() {
       const scale = Math.min(window.innerWidth / 1600, window.innerHeight / 900);
-      stage.style.transform = `scale(${scale})`;
+      stage.style.transform = `translate(-50%, -50%) scale(${scale})`;
     }
 
     function show(nextIndex) {
