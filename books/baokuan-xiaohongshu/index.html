@@ -1,0 +1,829 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>把《爆款小红书》变成行动工作台</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Serif+SC:wght@600;800&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    /* === FRONTEND SLIDES FIXED STAGE === */
+    :root {
+      --paper: #f5f0df;
+      --ink: #111111;
+      --muted: #5f5b4d;
+      --line: #111111;
+      --accent: #f0ff2f;
+      --accent-2: #e9542c;
+      --dark: #111111;
+      --dark-ink: #f5f0df;
+      --soft: #ded5b7;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0d0d0d;
+      color: var(--ink);
+      font-family: "Noto Sans SC", sans-serif;
+    }
+
+    .viewport {
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle at 16% 18%, rgba(240,255,47,.13), transparent 24%),
+        linear-gradient(135deg, #050505, #1b1b18);
+    }
+
+    .stage {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+      transform: scale(1);
+      transform-origin: top left;
+      overflow: hidden;
+      background: var(--paper);
+      border: 1px solid rgba(255,255,255,.2);
+      box-shadow: 0 36px 90px rgba(0,0,0,.45);
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      padding: 74px 86px 78px;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity .42s ease, transform .42s ease;
+      transform: translateX(28px);
+      background: var(--paper);
+    }
+
+    .slide.active {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translateX(0);
+    }
+
+    .slide.dark {
+      background: var(--dark);
+      color: var(--dark-ink);
+    }
+
+    .chrome {
+      position: absolute;
+      top: 34px;
+      left: 86px;
+      right: 86px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: "Roboto Mono", monospace;
+      font-size: 18px;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .dark .chrome { color: rgba(245,240,223,.62); }
+
+    .page-num {
+      position: absolute;
+      right: 86px;
+      bottom: 36px;
+      font-family: "Roboto Mono", monospace;
+      font-size: 18px;
+      color: var(--muted);
+    }
+
+    .dark .page-num { color: rgba(245,240,223,.62); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 28px;
+      height: 100%;
+      padding-top: 64px;
+    }
+
+    h1, h2, h3, p { margin: 0; }
+
+    .kicker {
+      font-family: "Roboto Mono", monospace;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--accent-2);
+      text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+
+    .dark .kicker { color: var(--accent); }
+
+    .title {
+      font-family: "Noto Serif SC", serif;
+      font-size: 118px;
+      line-height: 1.06;
+      font-weight: 800;
+      letter-spacing: 0;
+      max-width: 1220px;
+    }
+
+    .title-xl {
+      font-family: "Noto Serif SC", serif;
+      font-size: 150px;
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin-top: 42px;
+      font-size: 34px;
+      line-height: 1.45;
+      max-width: 900px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .dark .subtitle { color: rgba(245,240,223,.76); }
+
+    .big-number {
+      font-family: "Roboto Mono", monospace;
+      font-size: 230px;
+      line-height: .85;
+      font-weight: 700;
+      color: var(--accent-2);
+    }
+
+    .dark .big-number { color: var(--accent); }
+
+    .lead {
+      font-size: 42px;
+      line-height: 1.38;
+      font-weight: 700;
+    }
+
+    .body {
+      font-size: 27px;
+      line-height: 1.62;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .dark .body { color: rgba(245,240,223,.75); }
+
+    .card {
+      border: 2px solid var(--line);
+      padding: 28px;
+      background: rgba(255,255,255,.24);
+      min-height: 160px;
+    }
+
+    .dark .card {
+      border-color: rgba(245,240,223,.7);
+      background: rgba(245,240,223,.06);
+    }
+
+    .card.accent {
+      background: var(--accent);
+      color: var(--ink);
+      border-color: var(--ink);
+    }
+
+    .card h3 {
+      font-size: 32px;
+      line-height: 1.2;
+      font-weight: 900;
+      margin-bottom: 14px;
+    }
+
+    .card p, .card li {
+      font-size: 23px;
+      line-height: 1.5;
+      color: inherit;
+      font-weight: 500;
+    }
+
+    .source-note {
+      margin-top: 18px;
+      font-family: "Roboto Mono", "Noto Sans SC", sans-serif;
+      font-size: 19px;
+      line-height: 1.45;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .dark .source-note { color: rgba(245,240,223,.72); }
+
+    .source-note strong {
+      color: var(--accent);
+      font-weight: 900;
+    }
+
+    .source-line {
+      grid-column: 1 / -1;
+      margin-top: 12px;
+      border-left: 6px solid var(--accent-2);
+      padding: 12px 18px;
+      font-size: 22px;
+      line-height: 1.45;
+      color: var(--muted);
+      font-weight: 700;
+      background: rgba(255,255,255,.18);
+    }
+
+    .dark .source-line {
+      color: rgba(245,240,223,.74);
+      background: rgba(245,240,223,.05);
+      border-left-color: var(--accent);
+    }
+
+    ul.clean {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 18px;
+    }
+
+    .tag {
+      display: inline-block;
+      border: 2px solid currentColor;
+      padding: 8px 14px;
+      font-family: "Roboto Mono", monospace;
+      font-size: 18px;
+      font-weight: 700;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+
+    .module-title {
+      grid-column: 1 / span 5;
+      align-self: start;
+    }
+
+    .module-body {
+      grid-column: 6 / span 7;
+      display: grid;
+      gap: 22px;
+      align-content: start;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+    }
+
+    .steps {
+      counter-reset: step;
+      display: grid;
+      gap: 16px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 76px 1fr;
+      gap: 20px;
+      align-items: start;
+      border-top: 2px solid var(--line);
+      padding-top: 18px;
+    }
+
+    .dark .step { border-color: rgba(245,240,223,.65); }
+
+    .step::before {
+      counter-increment: step;
+      content: counter(step, decimal-leading-zero);
+      font-family: "Roboto Mono", monospace;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--accent-2);
+    }
+
+    .dark .step::before { color: var(--accent); }
+
+    .step strong {
+      display: block;
+      font-size: 29px;
+      line-height: 1.25;
+      margin-bottom: 6px;
+    }
+
+    .step span {
+      display: block;
+      font-size: 22px;
+      line-height: 1.45;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .dark .step span { color: rgba(245,240,223,.74); }
+
+    .flow {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 14px;
+      align-self: center;
+    }
+
+    .flow div {
+      min-height: 170px;
+      border: 2px solid var(--ink);
+      background: #fff9da;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .flow b {
+      font-family: "Roboto Mono", monospace;
+      font-size: 24px;
+      color: var(--accent-2);
+    }
+
+    .flow span {
+      font-size: 25px;
+      line-height: 1.2;
+      font-weight: 900;
+    }
+
+    .quote {
+      font-family: "Noto Serif SC", serif;
+      font-size: 74px;
+      line-height: 1.18;
+      font-weight: 800;
+      max-width: 1320px;
+    }
+
+    .matrix {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      align-self: center;
+    }
+
+    .matrix .card { min-height: 238px; }
+
+    .table {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 210px repeat(3, 1fr);
+      border: 2px solid var(--ink);
+      align-self: center;
+    }
+
+    .cell {
+      min-height: 118px;
+      border-right: 2px solid var(--ink);
+      border-bottom: 2px solid var(--ink);
+      padding: 24px;
+      font-size: 25px;
+      line-height: 1.38;
+      font-weight: 700;
+      background: rgba(255,255,255,.2);
+    }
+
+    .cell:nth-child(4n) { border-right: 0; }
+    .cell.header { background: var(--accent); font-family: "Roboto Mono", monospace; font-size: 22px; }
+
+    .note {
+      position: absolute;
+      left: 86px;
+      bottom: 42px;
+      max-width: 900px;
+      font-size: 22px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .controls {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 10;
+      font-family: "Roboto Mono", monospace;
+      color: #fff;
+      background: rgba(0,0,0,.54);
+      border: 1px solid rgba(255,255,255,.18);
+      padding: 10px 14px;
+      font-size: 14px;
+    }
+
+    .controls button {
+      border: 1px solid rgba(255,255,255,.45);
+      background: transparent;
+      color: #fff;
+      width: 34px;
+      height: 28px;
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .slide { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="viewport">
+    <div class="stage" id="stage">
+      <section class="slide active dark">
+        <div class="chrome"><span>Action Reading Desk</span><span>《爆款小红书》</span></div>
+        <div class="grid">
+          <div style="grid-column:1 / span 9; align-self:center">
+            <div class="kicker">Book to Action</div>
+            <h1 class="title-xl">行动型拆书工作台</h1>
+            <p class="subtitle">本期书目：《爆款小红书：从零到百万粉丝的玩赚策略》<br>把实操书拆成遇到问题就能回来翻的行动索引。</p>
+          </div>
+          <div style="grid-column:10 / span 3; align-self:end">
+            <div class="big-number">18</div>
+            <p class="body">页行动卡片<br>定位、选题、标题、正文、发布、复盘、变现</p>
+          </div>
+        </div>
+        <div class="page-num">01 / 18</div>
+      </section>
+
+      <section class="slide">
+        <div class="chrome"><span>Book Brief</span><span>书与作者</span></div>
+        <div class="grid">
+          <div class="module-title">
+            <div class="kicker">Book Profile</div>
+            <h2 class="title">《爆款小红书》：一本把平台内容拆成动作的实操书。</h2>
+          </div>
+          <div class="module-body">
+            <div class="card accent"><h3>书籍信息</h3><p>《爆款小红书：从零到百万粉丝的玩赚策略》｜吕白著｜北京时代华文书局，2022 年 2 月出版。</p></div>
+            <div class="two-col">
+              <div class="card"><h3>适合谁</h3><p>想从 0 做小红书、内容卡住、定位混乱、发了很多却不知道怎么复盘的人。</p></div>
+              <div class="card"><h3>书的价值</h3><p>把小红书拆成定位、选题、标题、封面、正文、运营、复盘和变现，而不是靠灵感。</p></div>
+            </div>
+            <p class="body">使用边界：平台规则和功能会变化；但定位、拆解、试错、复盘这些底层动作，仍然可以迁移使用。</p>
+          </div>
+        </div>
+        <div class="page-num">02 / 18</div>
+      </section>
+
+      <section class="slide dark">
+        <div class="chrome"><span>Core Thesis</span><span>先换脑子</span></div>
+        <div class="grid">
+          <div style="grid-column:1 / span 5; align-self:center">
+            <div class="kicker">底层原则</div>
+            <h2 class="title">先看作者为什么值得你听，再看三条底层原则。</h2>
+          </div>
+          <div style="grid-column:7 / span 5; align-self:center" class="steps">
+            <div class="step"><div><strong>作者成绩</strong><span>书中将个人定位概括为“吕白=爆款”（p.53），并提到账号“吕白聊内容”曾在 12 周积累 3 万粉丝、变现 40 余万元（p.11）。</span></div></div>
+            <div class="step"><div><strong>不要自我陶醉</strong><span>用户不关心你有多努力，只关心他的问题有没有被解决。原文索引：“没人关心你的内容多完美”（p.17）。</span></div></div>
+            <div class="step"><div><strong>爆款都是重复的</strong><span>先看见平台已经验证过什么，再做自己的迁移版本。原文索引：“70%和爆款相似”（p.10）。</span></div></div>
+            <div class="step"><div><strong>要积累素材</strong><span>不要等待灵感降临。原文索引：“所有的创意，都是记忆的积累。”（p.11）。</span></div></div>
+          </div>
+        </div>
+        <div class="page-num">03 / 18</div>
+      </section>
+
+      <section class="slide">
+        <div class="chrome"><span>Action Map</span><span>重组逻辑</span></div>
+        <div class="grid">
+          <div style="grid-column:1 / -1">
+            <div class="kicker">不按章节读，按行动走</div>
+            <h2 class="title">这本书真正的使用顺序，是一条生产线。</h2>
+          </div>
+          <div class="flow">
+            <div><b>01</b><span>判断适合度</span></div>
+            <div><b>02</b><span>定位</span></div>
+            <div><b>03</b><span>选题库</span></div>
+            <div><b>04</b><span>标题封面</span></div>
+            <div><b>05</b><span>正文结构</span></div>
+            <div><b>06</b><span>发布互动</span></div>
+            <div><b>07</b><span>复盘</span></div>
+            <div><b>08</b><span>变现</span></div>
+          </div>
+          <p class="source-line">原文索引：“从选题、标题、封面、内容、排版等方面分别拆解，寻找共性，寻找火爆原因，再融入你的笔记中。”（p.46）</p>
+        </div>
+        <div class="page-num">04 / 18</div>
+      </section>
+
+      <section class="slide">
+        <div class="chrome"><span>Fit Check</span><span>先问适不适合</span></div>
+        <div class="grid">
+          <div class="module-title">
+            <div class="big-number">0</div>
+            <h2 class="title">你愿意连续做 100 篇吗？</h2>
+          </div>
+          <div class="module-body">
+            <div class="card accent"><h3>适用场景</h3><p>想做小红书，但不知道自己是不是三分钟热度。</p></div>
+            <div class="steps">
+              <div class="step"><div><strong>写领域</strong><span>写下一个愿意长期拆解、长期输出的领域。</span></div></div>
+              <div class="step"><div><strong>搜样本</strong><span>搜 3 个关键词，看有没有稳定重复的爆款题型。</span></div></div>
+              <div class="step"><div><strong>算成本</strong><span>如果你不能接受模仿、试错和复盘，就不要把它当主战场。</span></div></div>
+            </div>
+            <p class="source-line">原文索引：“可能有些人的第100篇笔记会火，但是他在第99篇就放弃了。”（p.10）</p>
+          </div>
+        </div>
+        <div class="page-num">05 / 18</div>
+      </section>
+
+      <section class="slide dark">
+        <div class="chrome"><span>User First</span><span>停止自我陶醉</span></div>
+        <div class="grid">
+          <div style="grid-column:1 / span 8; align-self:center">
+            <div class="kicker">行动一</div>
+            <p class="quote">把“我想表达什么”改成“用户现在卡在哪里”。</p>
+            <p class="subtitle">每篇笔记只解决一个明确问题。封面第一眼就要让用户知道：这和我有关。</p>
+            <p class="source-line">原文索引：“能解决他人问题的笔记，才是合格的笔记。”（p.17）</p>
+          </div>
+          <div style="grid-column:10 / span 3; align-self:center" class="card">
+            <h3>马上做</h3>
+            <p>拿最近一篇笔记，删掉所有不能服务用户决策的信息，把标题改成痛点 + 结果 + 方法。</p>
+          </div>
+        </div>
+        <div class="page-num">06 / 18</div>
+      </section>
+
+      <section class="slide">
+        <div class="chrome"><span>Positioning</span><span>给关注理由</span></div>
+        <div class="grid">
+          <div class="module-title">
+            <div class="kicker">行动二</div>
+            <h2 class="title">定位不是介绍你是谁，是告诉用户为什么关注你。</h2>
+          </div>
+          <div class="module-body">
+            <div class="card accent"><h3>一句话模板</h3><p>我帮助【具体人群】在【具体场景】解决【具体问题】，通过【内容形式】提供【明确结果】。</p></div>
+            <div class="two-col">
+              <div class="card"><h3>四件套</h3><p>昵称、头像、主页、简介，都要服务这句话。</p></div>
+              <div class="card"><h3>避坑</h3><p>不要今天旅游、明天美食、后天职场。账号垂直度会被你自己稀释。</p></div>
+            </div>
+            <p class="source-line">原文索引：“给用户一个关注你的理由。”（p.53）</p>
+          </div>
+        </div>
+        <div class="page-num">07 / 18</div>
+      </section>
+
+      <section class="slide">
+        <div class="chrome"><span>Topic Bank</span><span>选题库</span></div>
+        <div class="grid">
+          <div style="grid-column:1 / span 5">
+            <div class="kicker">行动三</div>
+            <h2 class="title">没有选题灵感，就去拆 30 条。</h2>
+            <p class="subtitle">不是收藏爆款，是拆出它们为什么被需要。</p>
+          </div>
+          <div style="grid-column:7 / span 5" class="steps">
+            <div class="step"><div><strong>3 个关键词</strong><span>围绕你的定位，不要泛搜。</span></div></div>
+            <div class="step"><div><strong>每个 10 条最热</strong><span>标题、封面、正文结构、数据全部记录。</span></div></div>
+            <div class="step"><div><strong>找重复题型</strong><span>重复越多，越说明用户已经投票。</span></div></div>
+            <div class="step"><div><strong>做迁移版本</strong><span>不要照搬，换成你的经验、案例和对象。</span></div></div>
+            <p class="source-line">原文索引：“总结其选题的共性，再去模仿，然后超越。”（p.115）</p>
+          </div>
+        </div>
+        <div class="page-num">08 / 18</div>
+      </section>
+
+      <section class="slide dark">
+        <div class="chrome"><span>Cover & Title</span><span>先争取被点开</span></div>
+        <div class="grid">
+          <div style="grid-column:1 / span 12">
+            <div class="kicker">行动四</div>
+            <h2 class="title">封面不是艺术品，封面是入口。</h2>
+          </div>
+          <div class="matrix">
+            <div class="card"><h3>对象</h3><p>谁看到会停？学生、宝妈、职场新人、店主。</p></div>
+            <div class="card"><h3>痛点</h3><p>他现在急着解决什么？别写虚词。</p></div>
+            <div class="card"><h3>结果</h3><p>看完能拿到什么收益？清单、模板、避坑、步骤。</p></div>
+            <div class="card accent"><h3>识别</h3><p>一秒内看懂，比“高级感”更重要。</p></div>
+          </div>
+          <p class="source-line">原文索引：“全是重点就相当于没有重点。”（p.14）</p>
+        </div>
+        <div class="page-num">09 / 18</div>
+      </section>
+
+      <section class="slide">
+        <div class="chrome"><span>Three-Part Note</span><span>正文结构</span></div>
+        <div class="grid">
+          <div style="grid-column:1 / span 5; align-self:center">
+            <div class="kicker">行动五</div>
+            <h2 class="title">三段式：让用户看完愿意收藏。</h2>
+          </div>
+          <div style="grid-column:7 / span 5; align-self:center" class="steps">
+            <div class="step"><div><strong>开头</strong><span>用痛点、场景或结果，让用户确认“这是我的问题”。</span></div></div>
+            <div class="step"><div><strong>中间</strong><span>给步骤、清单、模板或案例，不写散文。</span></div></div>
+            <div class="step"><div><strong>结尾</strong><span>给收藏、评论、私信或下一步行动理由。</span></div></div>
+            <p class="source-line">原文索引：“控制字数，学会分段，善用表情。”（p.154）</p>
+          </div>
+        </div>
+        <div class="page-num">10 / 18</div>
+      </section>
+
+      <section class="slide">
+        <div class="chrome"><span>Publish</span><span>发布与互动</span></div>
+        <div class="grid">
+          <div class="module-title">
+            <div class="kicker">行动六</div>
+            <h2 class="title">发布时间和互动是放大器，不是起点。</h2>
+          </div>
+          <div class="module-body">
+            <div class="card accent"><h3>前提</h3><p>定位、选题、封面和正文不清楚时，运营技巧救不了。</p></div>
+            <div class="steps">
+              <div class="step"><div><strong>记录发布时间</strong><span>不要凭感觉判断哪个时间好。</span></div></div>
+              <div class="step"><div><strong>维护评论区</strong><span>从真实问题里提取下一篇选题。</span></div></div>
+              <div class="step"><div><strong>保持标签稳定</strong><span>账号越清晰，平台越容易理解你。</span></div></div>
+            </div>
+            <p class="source-line">原文索引：“互动量决定了你的内容的价值。”（p.179）</p>
+          </div>
+        </div>
+        <div class="page-num">11 / 18</div>
+      </section>
+
+      <section class="slide dark">
+        <div class="chrome"><span>Review</span><span>复盘</span></div>
+        <div class="grid">
+          <div style="grid-column:1 / span 5">
+            <div class="kicker">行动七</div>
+            <h2 class="title">每一篇笔记，都应该变成下一篇的燃料。</h2>
+          </div>
+          <div style="grid-column:7 / span 5" class="steps">
+            <div class="step"><div><strong>点击弱</strong><span>标题和封面是否不够直观？</span></div></div>
+            <div class="step"><div><strong>收藏弱</strong><span>正文有没有可保存的步骤、清单或模板？</span></div></div>
+            <div class="step"><div><strong>评论弱</strong><span>结尾有没有给用户表达入口？</span></div></div>
+            <div class="step"><div><strong>关注弱</strong><span>账号定位是否足够明确？</span></div></div>
+            <p class="source-line">原文索引：“做好复盘有五大步骤：回顾目标、比对结果、深度提问、总结经验和规划行动。”（p.191）</p>
+          </div>
+        </div>
+        <div class="page-num">12 / 18</div>
+      </section>
+
+      <section class="slide">
+        <div class="chrome"><span>Three-Pass Analysis</span><span>三遍拆解法</span></div>
+        <div class="grid">
+          <div style="grid-column:1 / span 12">
+            <div class="kicker">从看过，到认识</div>
+            <h2 class="title">见过爆款不等于会做爆款。</h2>
+          </div>
+          <div class="matrix">
+            <div class="card accent"><h3>第一遍：用户视角</h3><p>为什么点开？看完有没有保存或转发冲动？</p></div>
+            <div class="card"><h3>第二遍：算法视角</h3><p>一级、二级、三级标签是什么？关键词是否稳定重复？</p></div>
+            <div class="card"><h3>第三遍：评论视角</h3><p>Top 评论里暴露了什么需求、补充和反对意见？</p></div>
+            <div class="card"><h3>迁移</h3><p>把 3 个可借鉴点迁移到你的下一篇，而不是照搬原文。</p></div>
+          </div>
+          <p class="source-line">原文索引：“见过爆款笔记不等于真正认识爆款笔记。”（p.259）</p>
+        </div>
+        <div class="page-num">13 / 18</div>
+      </section>
+
+      <section class="slide">
+        <div class="chrome"><span>Monetization</span><span>变现</span></div>
+        <div class="grid">
+          <div class="module-title">
+            <div class="kicker">行动八</div>
+            <h2 class="title">别太早卖。先让用户知道你能持续解决什么。</h2>
+          </div>
+          <div class="module-body">
+            <div class="card accent"><h3>顺序</h3><p>定位清楚 → 内容稳定 → 用户信任 → 商业路径。</p></div>
+            <div class="two-col">
+              <div class="card"><h3>可选路径</h3><p>广告、带货、私域、课程。先判断你卖的是商品、服务、资源还是影响力。</p></div>
+              <div class="card"><h3>本周只做</h3><p>验证一个免费资源有没有人要，不急着搭完整商业闭环。</p></div>
+            </div>
+            <p class="source-line">原文索引：“你要找到你的努力方向，不断积累这方面的能力并持续变现。”（p.53）</p>
+          </div>
+        </div>
+        <div class="page-num">14 / 18</div>
+      </section>
+
+      <section class="slide">
+        <div class="chrome"><span>Starter Table</span><span>30 分钟启动表</span></div>
+        <div class="grid">
+          <div style="grid-column:1 / -1">
+            <div class="kicker">今天就能开始</div>
+            <h2 class="title">不要等读完。先做一个最小动作。</h2>
+          </div>
+          <div class="table">
+            <div class="cell header">步骤</div><div class="cell header">要做什么</div><div class="cell header">完成标准</div><div class="cell header">时间</div>
+            <div class="cell">01</div><div class="cell">写下一个领域</div><div class="cell">不超过 12 个字</div><div class="cell">5 min</div>
+            <div class="cell">02</div><div class="cell">搜 3 个关键词</div><div class="cell">每个都有真实爆款</div><div class="cell">15 min</div>
+            <div class="cell">03</div><div class="cell">拆 30 条样本</div><div class="cell">标题、封面、数据齐全</div><div class="cell">60 min</div>
+          </div>
+        </div>
+        <div class="page-num">15 / 18</div>
+      </section>
+
+      <section class="slide dark">
+        <div class="chrome"><span>7-Day Sprint</span><span>实践计划</span></div>
+        <div class="grid">
+          <div style="grid-column:1 / span 5">
+            <div class="kicker">7 天行动</div>
+            <h2 class="title">一周不求爆，只求跑完闭环。</h2>
+          </div>
+          <div style="grid-column:7 / span 5" class="steps">
+            <div class="step"><div><strong>Day 1-2</strong><span>定位一句话，拆 30 条样本。</span></div></div>
+            <div class="step"><div><strong>Day 3-4</strong><span>做标题、封面和第一篇三段式正文。</span></div></div>
+            <div class="step"><div><strong>Day 5-6</strong><span>发布，记录数据，拆同题爆款和评论区。</span></div></div>
+            <div class="step"><div><strong>Day 7</strong><span>改第二篇。真正的学习发生在第二篇。</span></div></div>
+          </div>
+        </div>
+        <div class="page-num">16 / 18</div>
+      </section>
+
+      <section class="slide">
+        <div class="chrome"><span>Use It Later</span><span>反复查阅</span></div>
+        <div class="grid">
+          <div style="grid-column:1 / span 8; align-self:center">
+            <div class="kicker">有困惑就回来翻</div>
+            <h2 class="title">卡住时，先问下一步改哪里。</h2>
+            <p class="subtitle">选题、标题、封面、正文、发布，还是复盘？把问题落到一个具体动作上。</p>
+          </div>
+          <div style="grid-column:10 / span 3; align-self:center" class="card accent">
+            <h3>使用方式</h3>
+            <p>把它当成行动索引，不当成读书证明。每次只解决一个具体问题。</p>
+          </div>
+        </div>
+        <div class="page-num">17 / 18</div>
+      </section>
+
+      <section class="slide dark">
+        <div class="chrome"><span>End</span><span>版权与说明</span></div>
+        <div class="grid">
+          <div style="grid-column:1 / span 9; align-self:center">
+            <div class="kicker">最后一句</div>
+            <h2 class="title-xl">把书读完，<br>不如把一个动作做完。</h2>
+            <p class="subtitle">本 HTML 是基于个人学习目的制作的行动化读书工具，不传播原书，不替代原书阅读。</p>
+          </div>
+        </div>
+        <div class="page-num">18 / 18</div>
+      </section>
+    </div>
+  </main>
+
+  <div class="controls" aria-label="slide controls">
+    <button id="prev" title="上一页">‹</button>
+    <span id="counter">01 / 18</span>
+    <button id="next" title="下一页">›</button>
+  </div>
+
+  <script>
+    /* === SLIDE NAVIGATION === */
+    const stage = document.getElementById('stage');
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const counter = document.getElementById('counter');
+    let current = 0;
+
+    function fitStage() {
+      const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+      stage.style.transform = `scale(${scale})`;
+      stage.style.left = `${(window.innerWidth - 1920 * scale) / 2}px`;
+      stage.style.top = `${(window.innerHeight - 1080 * scale) / 2}px`;
+    }
+
+    function showSlide(index) {
+      current = Math.max(0, Math.min(slides.length - 1, index));
+      slides.forEach((slide, i) => slide.classList.toggle('active', i === current));
+      counter.textContent = `${String(current + 1).padStart(2, '0')} / ${slides.length}`;
+    }
+
+    document.getElementById('prev').addEventListener('click', () => showSlide(current - 1));
+    document.getElementById('next').addEventListener('click', () => showSlide(current + 1));
+
+    window.addEventListener('keydown', (event) => {
+      if (['ArrowRight', 'PageDown', ' '].includes(event.key)) {
+        event.preventDefault();
+        showSlide(current + 1);
+      }
+      if (['ArrowLeft', 'PageUp'].includes(event.key)) {
+        event.preventDefault();
+        showSlide(current - 1);
+      }
+      if (event.key === 'Home') showSlide(0);
+      if (event.key === 'End') showSlide(slides.length - 1);
+    });
+
+    window.addEventListener('resize', fitStage);
+    fitStage();
+
+    let touchStartX = null;
+    window.addEventListener('touchstart', (event) => {
+      touchStartX = event.changedTouches[0].clientX;
+    }, { passive: true });
+    window.addEventListener('touchend', (event) => {
+      if (touchStartX === null) return;
+      const delta = event.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(delta) > 60) showSlide(current + (delta < 0 ? 1 : -1));
+      touchStartX = null;
+    }, { passive: true });
+  </script>
+</body>
+</html>
