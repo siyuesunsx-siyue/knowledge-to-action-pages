@@ -4,6 +4,7 @@ A public collection of action-oriented HTML pages for books, courses, blogs, and
 
 ## Pages
 
+- [《真需求》行动型拆书](./books/zhen-xuqiu/)
 - [《爆款小红书》行动型拆书](./books/baokuan-xiaohongshu/)
 
 ## Copyright Boundary

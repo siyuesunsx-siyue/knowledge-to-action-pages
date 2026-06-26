@@ -29,14 +29,30 @@
       color: #4f4a40;
       margin: 0 0 32px;
     }
+    .pages {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
     a {
-      display: inline-block;
+      display: block;
       border: 2px solid #111;
-      padding: 16px 20px;
+      padding: 20px;
       color: #111;
       text-decoration: none;
       font-weight: 800;
+      background: #fff9d8;
+    }
+    a.primary {
       background: #f0ff2f;
+    }
+    a span {
+      display: block;
+      margin-top: 10px;
+      color: #4f4a40;
+      font-size: 15px;
+      line-height: 1.5;
+      font-weight: 650;
     }
   </style>
 </head>
@@ -44,7 +60,10 @@
   <main>
     <h1>Knowledge to Action Pages</h1>
     <p>把书、课程、博客和方法论整理成能行动、能复查、能分享的网页。</p>
-    <a href="./books/baokuan-xiaohongshu/">打开《爆款小红书》行动型拆书</a>
+    <div class="pages">
+      <a class="primary" href="./books/zhen-xuqiu/">《真需求》行动型拆书<span>需求判断、场景验证、共识与商业闭环。</span></a>
+      <a href="./books/baokuan-xiaohongshu/">《爆款小红书》行动型拆书<span>定位、选题、标题、发布、复盘和变现。</span></a>
+    </div>
   </main>
 </body>
 </html>

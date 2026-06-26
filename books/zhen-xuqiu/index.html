@@ -1,0 +1,647 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>把《真需求》变成需求判断工作台</title>
+  <style>
+    :root {
+      --bg: #f4f1e8;
+      --ink: #111111;
+      --muted: #5b5b5b;
+      --line: #111111;
+      --blue: #002fa7;
+      --red: #e5422b;
+      --dark: #0e0e0e;
+      --white: #f7f3e9;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--dark);
+      color: var(--ink);
+      font-family: "Inter", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+    }
+    .viewport {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: var(--dark);
+    }
+    #stage {
+      position: relative;
+      width: 1600px;
+      height: 900px;
+      transform-origin: center center;
+      overflow: hidden;
+      border: 1px solid rgba(244,241,232,.35);
+      background: var(--bg);
+    }
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: none;
+      padding: 64px 72px 56px;
+      background: var(--bg);
+      color: var(--ink);
+    }
+    .slide.active { display: block; }
+    .slide.dark {
+      background: var(--dark);
+      color: var(--white);
+      --line: #f7f3e9;
+      --muted: #c8c2b5;
+    }
+    .kicker {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0;
+      color: var(--blue);
+      text-transform: uppercase;
+    }
+    .dark .kicker { color: #7da1ff; }
+    .topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 15px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 54px;
+    }
+    h1, h2, h3, p { margin: 0; }
+    .mega {
+      font-size: 116px;
+      line-height: .98;
+      font-weight: 300;
+      letter-spacing: 0;
+      max-width: 1120px;
+    }
+    .mega strong { font-weight: 900; }
+    .title {
+      font-size: 86px;
+      line-height: 1.03;
+      font-weight: 300;
+      letter-spacing: 0;
+    }
+    .title strong { font-weight: 900; }
+    .body {
+      font-size: 25px;
+      line-height: 1.55;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .dark .body { color: var(--muted); }
+    .source-line {
+      margin-top: 34px;
+      border-top: 3px solid var(--line);
+      padding-top: 18px;
+      font-size: 19px;
+      line-height: 1.45;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .dark .source-line { color: #d7d2c8; }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 56px;
+      align-items: end;
+      height: 650px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+      margin-top: 44px;
+    }
+    .cards-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      margin-top: 44px;
+    }
+    .card {
+      border: 2px solid var(--line);
+      min-height: 158px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .card.blue {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: white;
+    }
+    .card .num {
+      color: var(--blue);
+      font-size: 22px;
+      font-weight: 900;
+    }
+    .card.blue .num { color: white; }
+    .card h3 {
+      font-size: 28px;
+      line-height: 1.18;
+      font-weight: 900;
+    }
+    .card p {
+      margin-top: 12px;
+      font-size: 19px;
+      line-height: 1.4;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .dark .card p { color: #d8d2c6; }
+    .card.blue p { color: #e8edff; }
+    .steps {
+      border-top: 3px solid var(--line);
+      margin-top: 36px;
+    }
+    .step {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 24px;
+      border-bottom: 2px solid var(--line);
+      padding: 22px 0;
+    }
+    .step b {
+      color: var(--blue);
+      font-size: 24px;
+      font-weight: 900;
+    }
+    .step h3 {
+      font-size: 30px;
+      line-height: 1.2;
+      font-weight: 900;
+    }
+    .step p {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 20px;
+      line-height: 1.38;
+      font-weight: 700;
+    }
+    .quote-box {
+      background: var(--blue);
+      color: white;
+      padding: 32px;
+      align-self: stretch;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 250px;
+    }
+    .quote-box h3 {
+      font-size: 36px;
+      line-height: 1.15;
+      font-weight: 900;
+    }
+    .quote-box p {
+      margin-top: 22px;
+      font-size: 21px;
+      line-height: 1.45;
+      font-weight: 700;
+      color: #e9efff;
+    }
+    .table {
+      display: grid;
+      grid-template-columns: 1.1fr 1.5fr 1.5fr;
+      border-top: 3px solid var(--line);
+      border-left: 3px solid var(--line);
+      margin-top: 36px;
+    }
+    .cell {
+      min-height: 88px;
+      padding: 20px;
+      border-right: 3px solid var(--line);
+      border-bottom: 3px solid var(--line);
+      font-size: 21px;
+      line-height: 1.35;
+      font-weight: 800;
+    }
+    .cell.head {
+      background: var(--blue);
+      color: white;
+      font-size: 20px;
+    }
+    .page-no {
+      position: absolute;
+      right: 72px;
+      bottom: 42px;
+      font-size: 16px;
+      color: var(--muted);
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+    .dark .page-no { color: #bdb7aa; }
+    .nav {
+      position: fixed;
+      left: 50%;
+      bottom: 28px;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 12px 20px;
+      border: 1px solid rgba(247,243,233,.35);
+      background: rgba(10,10,10,.72);
+      color: var(--white);
+      font-weight: 900;
+      font-size: 22px;
+      z-index: 5;
+    }
+    .nav button {
+      width: 58px;
+      height: 48px;
+      border: 1px solid rgba(247,243,233,.6);
+      background: transparent;
+      color: var(--white);
+      font-size: 30px;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .progress {
+      min-width: 98px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+    @media (max-width: 800px) {
+      .nav {
+        bottom: 14px;
+        gap: 14px;
+        font-size: 18px;
+      }
+      .nav button {
+        width: 48px;
+        height: 42px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="viewport">
+    <div id="stage">
+      <section class="slide active dark" data-layout="S01">
+        <div class="topline"><span>ZHEN XUQIU</span><span>行动型拆书</span></div>
+        <div class="grid-2">
+          <div>
+            <p class="kicker">Book To Action</p>
+            <h1 class="mega">把《真需求》变成<br><strong>需求判断工作台</strong>。</h1>
+          </div>
+          <div>
+            <p class="body">不是摘要。不是金句集。它要帮你在产品、课程、服务、内容或商业机会卡住时，判断下一步该问谁、看哪里、验证什么。</p>
+            <p class="source-line">原文索引：“真需求”（p.7）</p>
+          </div>
+        </div>
+        <div class="page-no">01 / 18</div>
+      </section>
+
+      <section class="slide" data-layout="S04">
+        <div class="topline"><span>BOOK BRIEF</span><span>书与作者</span></div>
+        <div class="grid-2">
+          <div>
+            <p class="kicker">Profile</p>
+            <h2 class="title">一本用商业闭环<br><strong>重看需求</strong>的书。</h2>
+          </div>
+          <div>
+            <div class="quote-box">
+              <h3>《真需求》</h3>
+              <p>梁宁著，新星出版社，2024 年 10 月出版。本书把商业问题压缩成三个互相咬合的环节：价值、共识、模式。</p>
+            </div>
+            <div class="cards-4">
+              <div class="card"><span class="num">01</span><h3>作者现场</h3><p>书中提到她曾在联想、CNET、腾讯等产业现场工作。</p></div>
+              <div class="card"><span class="num">02</span><h3>内容能力</h3><p>曾参与“时间的朋友”跨年演讲文本打磨。</p></div>
+              <div class="card"><span class="num">03</span><h3>产业声誉</h3><p>书中提及她曾被称为“中关村第一才女”。</p></div>
+              <div class="card blue"><span class="num">04</span><h3>适合谁</h3><p>产品、咨询、课程、品牌、内容和创业项目负责人。</p></div>
+            </div>
+          </div>
+        </div>
+        <div class="page-no">02 / 18</div>
+      </section>
+
+      <section class="slide dark" data-layout="S03">
+        <div class="topline"><span>CORE THESIS</span><span>先换脑子</span></div>
+        <div class="grid-2">
+          <div>
+            <p class="kicker">底层判断</p>
+            <h2 class="title">需求不是用户嘴上说想要什么。</h2>
+          </div>
+          <div class="steps">
+            <div class="step"><b>01</b><div><h3>它要能生成价值</h3><p>用户愿意行动、付出、迁移或支付。</p></div></div>
+            <div class="step"><b>02</b><div><h3>它要能达成共识</h3><p>对方理解为什么现在要选你。</p></div></div>
+            <div class="step"><b>03</b><div><h3>它要能支撑模式</h3><p>服务别人以后，你也能持续生存和成长。</p></div></div>
+          </div>
+          <p class="source-line">原文索引：“价值源自需求”（p.5）</p>
+        </div>
+        <div class="page-no">03 / 18</div>
+      </section>
+
+      <section class="slide" data-layout="S11">
+        <div class="topline"><span>ACTION MAP</span><span>行动路径</span></div>
+        <p class="kicker">不按章节读，按判断走</p>
+        <h2 class="mega">一条需求判断生产线。</h2>
+        <div class="cards-4">
+          <div class="card"><span class="num">01</span><h3>真假</h3><p>谁受益，谁付出代价？</p></div>
+          <div class="card"><span class="num">02</span><h3>价值</h3><p>它解决哪类价值？</p></div>
+          <div class="card"><span class="num">03</span><h3>对象</h3><p>真实用户是谁？</p></div>
+          <div class="card"><span class="num">04</span><h3>场景</h3><p>发生在什么流程里？</p></div>
+          <div class="card"><span class="num">05</span><h3>共识</h3><p>为什么还不行动？</p></div>
+          <div class="card"><span class="num">06</span><h3>利益</h3><p>谁推动，谁阻碍？</p></div>
+          <div class="card"><span class="num">07</span><h3>模式</h3><p>如何持续生存？</p></div>
+          <div class="card blue"><span class="num">08</span><h3>复盘</h3><p>哪一环没走通？</p></div>
+        </div>
+        <p class="source-line">原文索引：“商业闭环”（p.5）</p>
+        <div class="page-no">04 / 18</div>
+      </section>
+
+      <section class="slide" data-layout="S08">
+        <div class="topline"><span>FIT CHECK</span><span>先判真假</span></div>
+        <div class="grid-2">
+          <div>
+            <p class="kicker">行动一</p>
+            <h2 class="title">别急着做。先问谁会被它推动。</h2>
+          </div>
+          <div>
+            <div class="steps">
+              <div class="step"><b>01</b><div><h3>受益者</h3><p>谁会因为它变好？不是“大家”，是具体的人。</p></div></div>
+              <div class="step"><b>02</b><div><h3>代价</h3><p>他愿意付钱、花时间、换习惯，还是承担风险？</p></div></div>
+              <div class="step"><b>03</b><div><h3>推动力</h3><p>离开你的热情，它还会继续发生吗？</p></div></div>
+            </div>
+            <p class="source-line">原文索引：“受益者驱动”（p.1）</p>
+          </div>
+        </div>
+        <div class="page-no">05 / 18</div>
+      </section>
+
+      <section class="slide dark" data-layout="S05">
+        <div class="topline"><span>VALUE</span><span>价值判断</span></div>
+        <div class="grid-2">
+          <div>
+            <p class="kicker">行动二</p>
+            <h2 class="title">你觉得好，不等于它有商业价值。</h2>
+          </div>
+          <div>
+            <div class="quote-box">
+              <h3>把镜头转到买方。</h3>
+              <p>把“我有什么”改成“对方为什么要现在选择我”。价值不是内部评价，而是外部选择。</p>
+            </div>
+            <div class="grid-3">
+              <div class="card"><h3>行动</h3><p>用户有无真实付出？</p></div>
+              <div class="card"><h3>替代</h3><p>现在用什么凑合？</p></div>
+              <div class="card"><h3>风险</h3><p>不用你的损失是什么？</p></div>
+            </div>
+            <p class="source-line">原文索引：“买方”（p.2）</p>
+          </div>
+        </div>
+        <div class="page-no">06 / 18</div>
+      </section>
+
+      <section class="slide" data-layout="S07">
+        <div class="topline"><span>VALUE TYPE</span><span>价值类型</span></div>
+        <p class="kicker">行动三</p>
+        <h2 class="title">先判它卖的是什么价值。</h2>
+        <div class="cards-4">
+          <div class="card"><span class="num">A</span><h3>功能效率</h3><p>解决客观问题，降低时间、成本、风险。</p></div>
+          <div class="card"><span class="num">B</span><h3>情绪价值</h3><p>让人被看见、被安抚、被激发、被认同。</p></div>
+          <div class="card"><span class="num">C</span><h3>资产价值</h3><p>用户相信未来会更稀缺、更值钱。</p></div>
+          <div class="card blue"><span class="num">D</span><h3>品牌价值</h3><p>被记住、被辨认、被反复选择。</p></div>
+        </div>
+        <p class="source-line">原文索引：“效率需求”（p.10）</p>
+        <div class="page-no">07 / 18</div>
+      </section>
+
+      <section class="slide" data-layout="S12">
+        <div class="topline"><span>FALSE DEMAND</span><span>识别伪需求</span></div>
+        <div class="grid-2">
+          <div>
+            <p class="kicker">行动四</p>
+            <h2 class="title">最危险的不是没价值，是用户感知不到。</h2>
+          </div>
+          <div>
+            <div class="steps">
+              <div class="step"><b>01</b><div><h3>别相信礼貌反馈</h3><p>“挺好的”不是行动，“我现在就要”才是信号。</p></div></div>
+              <div class="step"><b>02</b><div><h3>别迷恋价值主张</h3><p>价值点没有被感知，就不会进入选择。</p></div></div>
+              <div class="step"><b>03</b><div><h3>重做感知设计</h3><p>标题、演示、试用、样品、价格，都在帮用户感知。</p></div></div>
+            </div>
+            <p class="source-line">原文索引：“用户感受不到”（p.200）</p>
+          </div>
+        </div>
+        <div class="page-no">08 / 18</div>
+      </section>
+
+      <section class="slide dark" data-layout="S13">
+        <div class="topline"><span>USER PERSONA</span><span>用户人设</span></div>
+        <p class="kicker">行动五</p>
+        <h2 class="mega">不要只写年龄收入。写一个人的故事。</h2>
+        <div class="cards-4">
+          <div class="card"><h3>他擅长什么</h3><p>长项往往暴露长期投入。</p></div>
+          <div class="card"><h3>他羡慕什么</h3><p>羡慕背后是未满足的自我设置。</p></div>
+          <div class="card"><h3>他反感什么</h3><p>反感能帮你避开价值冲突。</p></div>
+          <div class="card blue"><h3>他想成为谁</h3><p>需求经常藏在身份投射里。</p></div>
+        </div>
+        <p class="source-line">原文索引：“用户人设”（p.217）</p>
+        <div class="page-no">09 / 18</div>
+      </section>
+
+      <section class="slide" data-layout="S14">
+        <div class="topline"><span>SCENE</span><span>场景匹配</span></div>
+        <div class="grid-2">
+          <div>
+            <p class="kicker">行动六</p>
+            <h2 class="title">场景越具体，需求越有抓手。</h2>
+          </div>
+          <div>
+            <div class="table">
+              <div class="cell head">别问</div><div class="cell head">改问</div><div class="cell head">产物</div>
+              <div class="cell">市场大不大？</div><div class="cell">第一次使用发生在哪里？</div><div class="cell">场景句</div>
+              <div class="cell">用户喜不喜欢？</div><div class="cell">他现在怎么凑合？</div><div class="cell">替代方案</div>
+              <div class="cell">功能够不够？</div><div class="cell">他什么时候必须解决？</div><div class="cell">触发条件</div>
+            </div>
+            <p class="source-line">原文索引：“产品场景匹配”（p.235）</p>
+          </div>
+        </div>
+        <div class="page-no">10 / 18</div>
+      </section>
+
+      <section class="slide" data-layout="S19">
+        <div class="topline"><span>INTERVIEW</span><span>访谈与观察</span></div>
+        <p class="kicker">行动七</p>
+        <h2 class="title">不要问“你要不要”。问上一次发生了什么。</h2>
+        <div class="grid-3">
+          <div class="card"><span class="num">01</span><h3>事实</h3><p>最近一次是什么时候？在哪里？和谁有关？</p></div>
+          <div class="card"><span class="num">02</span><h3>行为</h3><p>你当时做了什么？用了什么替代方案？</p></div>
+          <div class="card blue"><span class="num">03</span><h3>代价</h3><p>它让你损失了什么？你愿意付出什么？</p></div>
+        </div>
+        <p class="source-line">原文索引：“一碰就疼”（p.7）</p>
+        <div class="page-no">11 / 18</div>
+      </section>
+
+      <section class="slide dark" data-layout="S16">
+        <div class="topline"><span>CONSENSUS</span><span>分歧与共识</span></div>
+        <div class="grid-2">
+          <div>
+            <p class="kicker">行动八</p>
+            <h2 class="title">价值成立，只是第一步。</h2>
+          </div>
+          <div>
+            <div class="steps">
+              <div class="step"><b>01</b><div><h3>感知分歧</h3><p>你说的价值，用户有没有感受到？</p></div></div>
+              <div class="step"><b>02</b><div><h3>想象分歧</h3><p>你想象的用户，和真实用户是否一致？</p></div></div>
+              <div class="step"><b>03</b><div><h3>利益分歧</h3><p>选择你，会不会损害某些关键人的利益？</p></div></div>
+            </div>
+            <p class="source-line">原文索引：“共识”（p.2）</p>
+          </div>
+        </div>
+        <div class="page-no">12 / 18</div>
+      </section>
+
+      <section class="slide" data-layout="S17">
+        <div class="topline"><span>STAKEHOLDER</span><span>利益相关人</span></div>
+        <p class="kicker">行动九</p>
+        <h2 class="mega">画出谁得利，谁有权，谁会挡。</h2>
+        <div class="cards-4">
+          <div class="card"><h3>受益者</h3><p>真正变好的人。</p></div>
+          <div class="card"><h3>付费者</h3><p>承担成本的人。</p></div>
+          <div class="card"><h3>影响者</h3><p>能推荐或否决的人。</p></div>
+          <div class="card blue"><h3>阻碍者</h3><p>利益被改变的人。</p></div>
+        </div>
+        <p class="source-line">原文索引：“利益即态度”（p.247）</p>
+        <div class="page-no">13 / 18</div>
+      </section>
+
+      <section class="slide" data-layout="S18">
+        <div class="topline"><span>NEW CATEGORY</span><span>认知战</span></div>
+        <div class="grid-2">
+          <div>
+            <p class="kicker">行动十</p>
+            <h2 class="title">新产品不是解释功能，是建立新共识。</h2>
+          </div>
+          <div>
+            <div class="quote-box">
+              <h3>用户没听懂，不一定是他不聪明。</h3>
+              <p>可能是你还没有把新品类、新标准、新选择理由放进他的认知结构里。</p>
+            </div>
+            <p class="source-line">原文索引：“新共识”（p.265）</p>
+          </div>
+        </div>
+        <div class="page-no">14 / 18</div>
+      </section>
+
+      <section class="slide dark" data-layout="S20">
+        <div class="topline"><span>RELATION</span><span>关系层级</span></div>
+        <p class="kicker">行动十一</p>
+        <h2 class="title">别把一次成交，当成真正的关系。</h2>
+        <div class="cards-4">
+          <div class="card"><span class="num">01</span><h3>需要</h3><p>刚性、具体、冷静。</p></div>
+          <div class="card"><span class="num">02</span><h3>喜欢</h3><p>体验愉悦，愿意重复。</p></div>
+          <div class="card"><span class="num">03</span><h3>认同</h3><p>价值观和判断方式一致。</p></div>
+          <div class="card blue"><span class="num">04</span><h3>归属</h3><p>愿意成为其中一部分。</p></div>
+        </div>
+        <p class="source-line">原文索引：“需要、喜欢、认同和归属”（p.281）</p>
+        <div class="page-no">15 / 18</div>
+      </section>
+
+      <section class="slide" data-layout="S21">
+        <div class="topline"><span>STARTER TABLE</span><span>60 分钟启动</span></div>
+        <p class="kicker">今天就能做</p>
+        <h2 class="title">别等想清楚。先验证一小步。</h2>
+        <div class="table">
+          <div class="cell head">时间</div><div class="cell head">动作</div><div class="cell head">产物</div>
+          <div class="cell">10 min</div><div class="cell">写一句需求假设</div><div class="cell">谁 / 场景 / 问题 / 代价</div>
+          <div class="cell">15 min</div><div class="cell">列 5 个真实用户</div><div class="cell">不用泛人群</div>
+          <div class="cell">15 min</div><div class="cell">写 7 个访谈问题</div><div class="cell">全部问事实和行为</div>
+          <div class="cell">20 min</div><div class="cell">发出最小验证</div><div class="cell">预约 / 报名 / 试用 / 付款意向</div>
+        </div>
+        <p class="source-line">原文索引：“checklist”（p.451）</p>
+        <div class="page-no">16 / 18</div>
+      </section>
+
+      <section class="slide" data-layout="S22">
+        <div class="topline"><span>REVIEW</span><span>复盘</span></div>
+        <div class="grid-2">
+          <div>
+            <p class="kicker">用完再回来</p>
+            <h2 class="title">卡住时，不问“我对吗”。</h2>
+            <p class="body" style="margin-top:28px;">问：价值、共识、场景、利益、模式，哪一环没走通？</p>
+          </div>
+          <div class="steps">
+            <div class="step"><b>01</b><div><h3>价值不成立？</h3><p>用户没有真实付出。</p></div></div>
+            <div class="step"><b>02</b><div><h3>共识没达成？</h3><p>用户听懂了，但没有行动理由。</p></div></div>
+            <div class="step"><b>03</b><div><h3>模式不匹配？</h3><p>服务别人之后，自己无法持续。</p></div></div>
+          </div>
+          <p class="source-line">原文索引：“模式”（p.5）</p>
+        </div>
+        <div class="page-no">17 / 18</div>
+      </section>
+
+      <section class="slide dark" data-layout="S10">
+        <div class="topline"><span>END</span><span>去伪存真</span></div>
+        <div class="grid-2">
+          <div>
+            <p class="kicker">最后一句</p>
+            <h2 class="mega">需求判断不是证明自己对。</h2>
+          </div>
+          <div>
+            <p class="body">它是把妄念、礼貌反馈、漂亮概念和真实行动分开。能让人行动、让共识形成、让模式持续的，才值得继续投入。</p>
+            <p class="source-line">原文索引：“磨心”（p.444）</p>
+          </div>
+        </div>
+        <div class="page-no">18 / 18</div>
+      </section>
+    </div>
+  </main>
+
+  <nav class="nav" aria-label="slide controls">
+    <button id="prev" aria-label="上一页">‹</button>
+    <span class="progress"><span id="current">01</span> / <span id="total">18</span></span>
+    <button id="next" aria-label="下一页">›</button>
+  </nav>
+
+  <script>
+    const stage = document.getElementById('stage');
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const currentEl = document.getElementById('current');
+    const totalEl = document.getElementById('total');
+    const total = slides.length;
+    let index = 0;
+    totalEl.textContent = String(total).padStart(2, '0');
+
+    function scaleStage() {
+      const scale = Math.min(window.innerWidth / 1600, window.innerHeight / 900);
+      stage.style.transform = `scale(${scale})`;
+    }
+
+    function show(nextIndex) {
+      index = Math.max(0, Math.min(total - 1, nextIndex));
+      slides.forEach((slide, i) => slide.classList.toggle('active', i === index));
+      currentEl.textContent = String(index + 1).padStart(2, '0');
+      location.hash = String(index + 1).padStart(2, '0');
+    }
+
+    document.getElementById('prev').addEventListener('click', () => show(index - 1));
+    document.getElementById('next').addEventListener('click', () => show(index + 1));
+    window.addEventListener('keydown', (event) => {
+      if (['ArrowRight', 'PageDown', ' '].includes(event.key)) show(index + 1);
+      if (['ArrowLeft', 'PageUp'].includes(event.key)) show(index - 1);
+    });
+
+    let startX = 0;
+    window.addEventListener('touchstart', (event) => { startX = event.touches[0].clientX; }, { passive: true });
+    window.addEventListener('touchend', (event) => {
+      const dx = event.changedTouches[0].clientX - startX;
+      if (Math.abs(dx) > 44) show(index + (dx < 0 ? 1 : -1));
+    }, { passive: true });
+
+    window.addEventListener('resize', scaleStage);
+    scaleStage();
+    const hashNum = Number(location.hash.replace('#', ''));
+    if (hashNum >= 1 && hashNum <= total) show(hashNum - 1);
+    else show(0);
+  </script>
+</body>
+</html>
